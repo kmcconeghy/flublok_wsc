@@ -5,13 +5,10 @@
   source(here::here('src', 'flublok_wsc_lst_dtafiles.R'))
 
 #-- dataset / munge  
-  if (T) source(here::here('src', 'flublok_wsc_bld_00.R'))
+  if (T) source(here::here('src', 'flublok_wsc_inp_01_mkindta.R'))
 
-#-- Run models
-  if (F) source(here::here('src', 'flublok_wsc_cpt_00.R'))
-
-#-- Project Reports  
-  if (T) source(here::here('src', 'flublok_wsc_rpt_00.R'))
+#-- Randomizations  
+  if (T) source(here::here('src', 'flublok_wsc_bld_01_dorandom.R'))
   
 #--IF ONLY WANT ONE FILE TO RUN
   #render_one('B04', wd.CodeFiles, ReportFiles)
