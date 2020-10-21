@@ -1,4 +1,4 @@
-
+test  <- function(x) {
 ### -- Convert to function
 
 
@@ -39,3 +39,4 @@ m2_res$smd <- t(apply(m2_res$delta, 1, function(x) x / t(m2_res$stdev)))
 st_end <- Sys.time()
 cat(paste0(n_rndms), 'Randomizations for M2. Stratified randomization, facility %AA and size quintiles \n ')
 st_end - st_run
+}

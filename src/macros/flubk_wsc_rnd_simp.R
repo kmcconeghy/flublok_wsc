@@ -1,6 +1,4 @@
-
-### -- Convert to function
-
+test  <- function(x) {
 
 # Method 1. Simple Randomization  
 
@@ -38,4 +36,4 @@ st_end <- Sys.time()
 
 cat(paste0(n_rndms), 'Randomizations for M1. Simple Random Assignment \n ')
 st_end - st_run
-```
+}

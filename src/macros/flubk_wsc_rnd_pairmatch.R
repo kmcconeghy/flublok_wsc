@@ -1,8 +1,5 @@
-
-### -- Convert to function
-
-
-## Create Pair-Matches  
+test <- function(x) {
+# Create Pair-Matches  
 
 library(nbpMatching)
 
@@ -42,9 +39,7 @@ df_m3 <- df_trial %>%
   distinct(.)
 
 n_distinct(df_mtch_3$fac_id)
-```
 
-```{r method 3, eval=F }
 st_run <- Sys.time()
 
 #Matrix of values  
@@ -70,3 +65,4 @@ m3_res$smd <- t(apply(m3_res$delta, 1, function(x) x / t(m3_res$stdev)))
 st_end <- Sys.time()
 cat(paste0(n_rndms), 'Randomizations for M3. Pair-Matched randomization, Key Variables \n ')
 st_end - st_run
+}

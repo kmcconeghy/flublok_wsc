@@ -1,4 +1,4 @@
-
+test <- function(x) {
 ### -- Convert to function
 
 
@@ -81,3 +81,4 @@ st_end <- Sys.time()
 
 cat(paste0(n_rndms), 'Method 6. Re-randomizations, \n')
 st_end - st_run
+}

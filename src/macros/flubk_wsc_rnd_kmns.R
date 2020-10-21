@@ -1,4 +1,4 @@
-
+test <- function(x) {
 ### -- Convert to function
 
 #Matrix of values  
@@ -48,4 +48,4 @@ st_end <- Sys.time()
 
 cat(paste0(n_rndms), 'Method 4. K-means clustering on key variables \n')
 st_end - st_run
-```
+}

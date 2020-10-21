@@ -1,4 +1,4 @@
-
+test <- function(x) {
 ### -- Convert to function
 
 
@@ -76,3 +76,4 @@ st_end <- Sys.time()
 
 cat(paste0(n_rndms), 'Method 5. K-means on PCA \n')
 st_end - st_run
+}
