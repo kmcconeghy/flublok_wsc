@@ -1,11 +1,10 @@
-test  <- function(x) {
+test  <- function(x, .id) {
 
 # Method 1. Simple Randomization  
-
 ## Random Assignment - Simple  
 
-df_m1 <- df_cov %>%
-  select(fac_id) %>%
+id_list <- x %>%
+  select(id) %>%
   distinct(.) %>%
   pull(.)
 

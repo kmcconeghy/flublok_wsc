@@ -1,4 +1,3 @@
-
 #---------------------------------------------------------#
 # 
 # Project: Randomization Study
@@ -12,11 +11,8 @@ source(here::here('src', paste0(prj.specs$prj.prefix, '_lst_dtafiles.R')))
 
 ltcfocus <- readRDS(here::here('prj_dbdf', dta.names$f_munge_list[1]))
 
-
-
 #----
 # 7 Methods 
-#
 #1. Simple Random
 #2. 2-strata randomization
 #3. Pair-matched design
@@ -29,14 +25,15 @@ ltcfocus <- readRDS(here::here('prj_dbdf', dta.names$f_munge_list[1]))
 
 ## Parameters  
 
-if (F) {
-  n_rndms <- 1000L
-  n_permutes <- 10L
+testrun <- T  
+
+if (testrun) {
+  n_rndms <- 100L
   k_starts <- 100L
   k_iters <- 100L
 } 
 
-if (T) {
+if (testrun) {
   n_rndms <- 10000L
   n_permutes <- 1000L
   k_starts <- 200000L
