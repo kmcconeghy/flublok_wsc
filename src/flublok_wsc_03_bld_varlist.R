@@ -2,7 +2,7 @@
 #---------------------------------------------------------#
 # 
 # Project: Randomization Study
-# Create a nested data-frame of sampled facilities  
+# Generate a list of variables for adjustment/comparison
 # Programmer: Kevin McConeghy
 # Start: 10/21/2020
 # 
@@ -12,29 +12,23 @@ source(here::here('src', paste0(prj.specs$prj.prefix, '_lst_dtafiles.R')))
 
 ltc_dta <- readRDS(here::here('prj_dbdf', dta.names$f_munge_list[1]))
 
+var_all <- names(ltc_dta)
+
+fac_id <- 'accpt_id'
+
+fac_noadj <- c('city', 'zip5', 'state', 'county', 'PctPvtDays',
+               'adj_medianlos', 'pctNHdaysSNF', 'hospptyr')
+
+fac_adj <- var_all[!var_all %in% c(fac_id, fac_noadj)]
+
 set.seed(as.integer(ymd('2020-10-21')))
 
-ltc_samp_10 <- replicate(1000, 
-                         sample_n(ltc_dta , 10, replace=F), 
+fac_varsamp <- replicate(1000, 
+                         data.frame(var_adj = sample(fac_adj, size=5, replace=T)), 
                          simplify=F) %>%
-  bind_rows(.id = 'sample') %>%
+  bind_rows(.id='sample') %>%
   group_by(sample) %>%
-  nest() #nest grouped df
+  nest() %>%
+  mutate(fac_id = 'accpt_id')
 
-ltc_samp_100 <- replicate(1000, 
-                         sample_n(ltc_dta , 100, replace=F), 
-                         simplify=F) %>%
-  bind_rows(.id = 'sample') %>%
-  group_by(sample) %>%
-  nest() #nest grouped df
-
-ltc_samp_500 <- replicate(1000, 
-                          sample_n(ltc_dta , 500, replace=F), 
-                          simplify=F) %>%
-  bind_rows(.id = 'sample') %>%
-  group_by(sample) %>%
-  nest() #nest grouped df
-
-saveRDS(ltc_samp_10, here::here('prj_dbdf', dta.names$f_cpt_list[1]))
-saveRDS(ltc_samp_100, here::here('prj_dbdf', dta.names$f_cpt_list[2]))
-saveRDS(ltc_samp_500, here::here('prj_dbdf', dta.names$f_cpt_list[3]))
+saveRDS(fac_varsamp, here::here('prj_dbdf', dta.names$f_cpt_list[4]))

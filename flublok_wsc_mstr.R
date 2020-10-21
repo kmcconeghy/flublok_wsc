@@ -10,6 +10,7 @@
 #-- dataset / munge  
   if (T) source(here::here('src', paste0(prj_pfix, '_01_inp_mkindta.R')))
   if (T) source(here::here('src', paste0(prj_pfix, '_02_bld_samp.R')))
+  if (T) source(here::here('src', paste0(prj_pfix, '_03_bld_varlist.R')))
   
 #-- Randomizations  
   if (T) source(here::here('src', paste0(prj_pfix, '_bld_01_dorandom.R')))
