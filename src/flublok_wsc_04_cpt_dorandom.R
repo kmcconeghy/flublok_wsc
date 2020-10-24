@@ -9,7 +9,11 @@
 source(list.files(pattern='*cfg*'))
 source(here::here('src', paste0(prj.specs$prj.prefix, '_lst_dtafiles.R')))
 
-ltcfocus <- readRDS(here::here('prj_dbdf', dta.names$f_munge_list[1]))
+library(jumble)  
+
+df_samp_varlist <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[4]))
+
+df_samp_010 <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[1]))
 
 #----
 # 7 Methods 
@@ -24,20 +28,16 @@ ltcfocus <- readRDS(here::here('prj_dbdf', dta.names$f_munge_list[1]))
 # Simulation Set-up 
 
 ## Parameters  
+testrun <- T  # to trial simulation set to T, set F when ready 
 
-testrun <- T  
-
-if (testrun) {
-  n_rndms <- 100L
-  k_starts <- 100L
-  k_iters <- 100L
-} 
+n_rndms <- 1000L # Nu
+k_starts <- 20000L # Number of start points for K-means
+k_iters <- 1000L # Number of K-means iterations
 
 if (testrun) {
-  n_rndms <- 10000L
-  n_permutes <- 1000L
-  k_starts <- 200000L
-  k_iters <- 100L
+  n_rndms <- n_rndms / 100
+  k_starts <- k_starts / 100
+  k_iters <- k_iters / 100
 }
 
 st_seed <- as.integer(ymd('2019-12-26'))
@@ -52,12 +52,22 @@ rndm_methods <- c('Simple Randomizations',
 
 cat('Starting Seed: ', st_seed, '\n')
 cat('No. of random simulations performed: ', n_rndms, '\n')
-cat('No. of permutations performed: ', n_permutes, '\n')
 
+sto_runinfo <- NULL
+sto_runinfo$session <- sessioninfo::session_info()
+sto_runinfo$runtimes <- list()
 
 # -- Run method 1 - Simple randomization
+st_time <- Sys.time()
 
-## Call function
+  df_rand_010 <- df_samp_010 %>%
+   mutate(assignment = map(.x = data, 
+                           .f = ~rnd_simple(., .id='accpt_id')))
+
+end_time <- Sys.time()
+
+sto_runinfo$runtimes$simple <- end_time - st_time
+
 
 ## execute
 
