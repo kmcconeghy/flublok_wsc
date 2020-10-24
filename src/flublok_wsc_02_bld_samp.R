@@ -1,4 +1,3 @@
-
 #---------------------------------------------------------#
 # 
 # Project: Randomization Study
@@ -7,34 +6,29 @@
 # Start: 10/21/2020
 # 
 #--------------------------------------------------------#
+
+# Create a nested list of dataframes, length 10000
+# each item in the list is a dataset of facilities sampled
+# from LTCFocus, of length x, where x is a random variable of
+# even values from 10, 500, this is setting up simulated 
+# randomizations for a study of size anywhere from 10 to 500   
+
 source(list.files(pattern='*cfg*'))
 source(here::here('src', paste0(prj.specs$prj.prefix, '_lst_dtafiles.R')))
 
 ltc_dta <- readRDS(here::here('prj_dbdf', dta.names$f_munge_list[1]))
 
 set.seed(as.integer(ymd('2020-10-21')))
+random_iters <- 10000L
+sample_size <- sort(rep(seq(10, 508, 2), 40))
 
-ltc_samp_10 <- replicate(1000, 
-                         sample_n(ltc_dta , 10, replace=F), 
+ltc_samp <- sapply(sample_size, 
+                     function(x) sample_n(ltc_dta, x, replace=F), 
                          simplify=F) %>%
   bind_rows(.id = 'sample') %>%
   group_by(sample) %>%
   nest() #nest grouped df
 
-ltc_samp_100 <- replicate(1000, 
-                         sample_n(ltc_dta , 100, replace=F), 
-                         simplify=F) %>%
-  bind_rows(.id = 'sample') %>%
-  group_by(sample) %>%
-  nest() #nest grouped df
+ltc_samp$size <- map(ltc_samp$data, nrow)
 
-ltc_samp_500 <- replicate(1000, 
-                          sample_n(ltc_dta , 500, replace=F), 
-                          simplify=F) %>%
-  bind_rows(.id = 'sample') %>%
-  group_by(sample) %>%
-  nest() #nest grouped df
-
-saveRDS(ltc_samp_10, here::here('prj_dbdf', dta.names$f_cpt_list[1]))
-saveRDS(ltc_samp_100, here::here('prj_dbdf', dta.names$f_cpt_list[2]))
-saveRDS(ltc_samp_500, here::here('prj_dbdf', dta.names$f_cpt_list[3]))
+saveRDS(ltc_samp, here::here('prj_dbdf', dta.names$f_cpt_list[1]))

@@ -37,7 +37,8 @@ ltcfocus_2 <- ltcfocus %>%
                    T ~ NA_integer_))) %>%
   select_if(~sum(is.na(.))/len<=0.1) %>% # drop mostly missing columns
   na.omit(.) %>% # drop any miss
-  mutate_if(~(is.numeric(.) & n_distinct(.)>2), scale) # scale numeric vars
+  # Scale numeric vars by SD (for comparison later)
+  mutate_if(~(is.numeric(.) & n_distinct(.)>2), scale) 
 
 nrows <- nrow(ltcfocus)
 n_distinct_facid <- n_distinct(ltcfocus$accpt_id)
