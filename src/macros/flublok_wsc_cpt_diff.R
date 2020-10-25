@@ -1,9 +1,12 @@
-cpt_diff <- function(df, assignment, .id, .varlist) {
+cpt_diff <- function(df, assignment, .varlist) {
   
-  diff <- inner_join(df, assignment, by=c(.id='id')) %>%
+  g_means <- inner_join(df, assignment, by=c('accpt_id'='id')) %>%
     select('group', all_of(.varlist)) %>%
-    split(., 'group') %>%
-    .[1] - .[2]
+    group_by(group) %>%
+    summarize_all(mean) 
   
+  diff <- g_means[g_means$group=='b', !names(g_means) == 'group'] - 
+    g_means[g_means$group=='a', !names(g_means) == 'group'] 
   
+  return(diff)
 }

@@ -9,11 +9,12 @@
 source(list.files(pattern='*cfg*'))
 source(here::here('src', paste0(prj.specs$prj.prefix, '_lst_dtafiles.R')))
 
+# remotes::install_github('kmcconeghy/jumble')
 library(jumble)  
 
-df_samp_varlist <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[4]))
+df_samp <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[1]))
+df_samp_varlist <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[2]))
 
-df_samp_010 <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[1]))
 
 #----
 # 7 Methods 
@@ -30,9 +31,13 @@ df_samp_010 <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[1]))
 ## Parameters  
 testrun <- T  # to trial simulation set to T, set F when ready 
 
-n_rndms <- 1000L # Nu
+if (testrun) {
+  df_samp <- df_samp[1:10, ]
+  df_samp_varlist <- df_samp_varlist[1:10, ]
+}
+
 k_starts <- 20000L # Number of start points for K-means
-k_iters <- 1000L # Number of K-means iterations
+k_iters <- 100L # Number of K-means iterations
 
 if (testrun) {
   n_rndms <- n_rndms / 100
@@ -40,7 +45,7 @@ if (testrun) {
   k_iters <- k_iters / 100
 }
 
-st_seed <- as.integer(ymd('2019-12-26'))
+st_seed <- as.integer(ymd('2020-10-24'))
 set.seed(st_seed)
 
 rndm_methods <- c('Simple Randomizations', 
@@ -51,31 +56,30 @@ rndm_methods <- c('Simple Randomizations',
                   'Re-randomization')
 
 cat('Starting Seed: ', st_seed, '\n')
-cat('No. of random simulations performed: ', n_rndms, '\n')
 
 sto_runinfo <- NULL
 sto_runinfo$session <- sessioninfo::session_info()
 sto_runinfo$runtimes <- list()
 
 # -- Run method 1 - Simple randomization
-st_time <- Sys.time()
+  st_time <- Sys.time()
 
-  df_rand_010 <- df_samp_010 %>%
+  ## execute - randomization
+  df_rand <- df_samp %>%
    mutate(assignment = map(.x = data, 
                            .f = ~rnd_simple(., .id='accpt_id')))
-
-end_time <- Sys.time()
-
-sto_runinfo$runtimes$simple <- end_time - st_time
-
-
-## execute
-
-## save random datasets as list  
+  
+  ## compute - mean differences  
+  df_rand$delta = pmap(list(df_rand$data, 
+                            df_rand$assignment,
+                            df_samp_varlist$fac_adj),
+                       .f = ~cpt_diff(..1, ..2, ..3)
+                       )
+  
+  end_time <- Sys.time()
 
 ## record time taken
-
-
+sto_runinfo$runtimes$simple <- end_time - st_time
 
 # Method 2. Simple stratified randomization - Race, Size  
 
@@ -126,3 +130,9 @@ sto_runinfo$runtimes$simple <- end_time - st_time
 ## save random datasets as list  
 
 ## record time taken
+
+# Save files  
+  ## Runtimes  
+  saveRDS(sto_runinfo, here::here('prj_dbdf', dta.names$f_cpt_list[3]))
+  ## save randomizations/mean differences  
+  saveRDS(sto_runinfo, here::here('prj_dbdf', dta.names$f_cpt_list[4]))

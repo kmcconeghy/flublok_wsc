@@ -13,7 +13,8 @@
   if (T) source(here::here('src', paste0(prj_pfix, '_03_bld_varlist.R')))
   
 #-- Randomizations  
-  if (T) source(here::here('src', paste0(prj_pfix, '_bld_01_dorandom.R')))
+  if (T) source(here::here('src', paste0(prj_pfix, '_04_cpt_dorandom.R')))
+  if (T) source(here::here('src', paste0(prj_pfix, '_05_cpt_performance.R')))
   
 #--IF ONLY WANT ONE FILE TO RUN
   #render_one('B04', wd.CodeFiles, ReportFiles)
