@@ -11,8 +11,10 @@
   if (T) source(here::here('src', paste0(prj_pfix, '_01_inp_mkindta.R')))
   if (T) source(here::here('src', paste0(prj_pfix, '_02_bld_samp.R')))
   if (T) source(here::here('src', paste0(prj_pfix, '_03_bld_varlist.R')))
+  rm(list=ls()) # clear datasets from memory
+  gc() # clean up memory
   
-#-- Randomizations  
+  #-- Randomizations  
   if (T) source(here::here('src', paste0(prj_pfix, '_04_cpt_dorandom.R')))
   if (T) source(here::here('src', paste0(prj_pfix, '_05_cpt_performance.R')))
   

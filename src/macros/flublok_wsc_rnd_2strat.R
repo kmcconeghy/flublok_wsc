@@ -1,13 +1,25 @@
+# Method 1. Simple Randomization  
+## Random Assignment - Simple  
+rnd_2strat  <- function(x, strata, .id) {
+  
+  strat_1 <- strata[1]
+  strat_2 <- strata[2]
+  id_list <- x %>%
+    distinct(fac_id, fac_black, fac_ls) %>%
+    mutate(cat_aa = ntile(fac_black, 5),
+           cat_fs = ntile(fac_ls, 5),
+           strata = interaction(cat_aa, cat_fs)) %>%
+    distinct(fac_id, cat_aa, cat_fs, strata)   
+    select(all_of(.id)) %>%
+    distinct(.) %>%
+    pull(.)
+  
+  rnd_rtrn <- jumble::rnd_allot(id_list)
+  
+  return(rnd_rtrn)
+}
+
 test  <- function(x) {
-### -- Convert to function
-
-
-# Method 2. Simple stratified randomization - Race, Size  
-
-## Assign Randomizations  
-
-st_run <- Sys.time()
-
 ## 2 Stratum  
 df_m2 <- df_trial %>%
   distinct(fac_id, fac_black, fac_ls) %>%

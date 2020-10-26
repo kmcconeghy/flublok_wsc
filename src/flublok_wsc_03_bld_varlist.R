@@ -1,4 +1,3 @@
-
 #---------------------------------------------------------#
 # 
 # Project: Randomization Study
@@ -7,6 +6,7 @@
 # Start: 10/21/2020
 # 
 #--------------------------------------------------------#
+
 source(list.files(pattern='*cfg*'))
 source(here::here('src', paste0(prj.specs$prj.prefix, '_lst_dtafiles.R')))
 
@@ -24,7 +24,7 @@ fac_adj <- var_all[!var_all %in% c(fac_id, fac_noadj)]
 set.seed(as.integer(ymd('2020-10-21')))
 
 fac_varsamp <- replicate(10000, 
-                         data.frame(var_adj = sample(fac_adj, size=5, replace=T)), 
+                         data.frame(var_adj = sample(fac_adj, size=5, replace=F)), 
                          simplify=F) %>%
   bind_rows(.id='sample') %>%
   group_by(sample) %>%
@@ -32,5 +32,9 @@ fac_varsamp <- replicate(10000,
   mutate(fac_id = 'accpt_id')
 
 fac_varsamp$fac_adj <- list(fac_adj)
+fac_varsamp$strata <- replicate(10000, 
+                                data.frame(var_adj = sample(fac_adj, size=2, replace=F)), 
+                                simplify=F) 
+ 
 
 saveRDS(fac_varsamp, here::here('prj_dbdf', dta.names$f_cpt_list[2]))
