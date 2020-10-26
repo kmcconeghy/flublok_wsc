@@ -64,14 +64,47 @@ sto_runinfo <- NULL
 sto_runinfo$session <- sessioninfo::session_info()
 sto_runinfo$runtimes <- list()
 
-df_res_tab <- tibble()
 # -- Run method 1 - Simple randomization
-st_time <- Sys.time()
+  st_time <- Sys.time()
 
-  ## randomization
+  ## execute - randomization
   df_rand$assign<- map(.x = df_samp$data, 
-                       .f = ~rnd_simple(., .id='accpt_id'))
+                 .f = ~rnd_simple(., .id='accpt_id'))
   
+  ## compute - mean differences  
+  res_iter = pmap(list(df_samp$data, 
+                            df_rand$assign,
+                            df_samp_varlist$fac_adj),
+                       .f = ~cpt_diff(..1, ..2, ..3)
+                       )
+  
+  add_list_row <- function(x, y, rw=1) {
+    newx <- bind_cols(x[rw, ], y)
+    return(left_join(x, newx, 'method') )
+  }
+  
+  df_rand$res <- map2(df_rand$res, 
+                      res_iter,
+                      add_list_row, rw=1)
+    
+  end_time <- Sys.time()
+
+  ## record time taken
+  sto_runinfo$runtimes$simple <- end_time - st_time
+  
+  ## save  
+  saveRDS(df_rand, here::here('prj_dbdf', dta.names$f_rnd_res[1]))
+  
+# Method 2. Simple stratified randomization - Race, Size  
+  st_time <- Sys.time()
+
+  ## execute - randomization
+  df_rand$assign <- map2(.x = df_samp$data, 
+                             .y = df_samp_varlist$strata,
+                            .f = ~rnd_2strat(., 
+                                             strata = .y,
+                                             .id='accpt_id'))
+
   ## compute - mean differences  
   res_iter = pmap(list(df_samp$data, 
                        df_rand$assign,
@@ -79,38 +112,18 @@ st_time <- Sys.time()
                   .f = ~cpt_diff(..1, ..2, ..3)
   )
   
-  df_rand$res <- map(df_rand$res, function(x) 
-    bind_cols(x, res_iter))
+  df_rand$res <- map2(df_rand$res, 
+                      res_iter,
+                      add_list_row, rw=2)
+
   end_time <- Sys.time()
-  
+
   ## record time taken
   sto_runinfo$runtimes$simple <- end_time - st_time
   
   ## save  
   saveRDS(df_rand, here::here('prj_dbdf', dta.names$f_rnd_res[1]))
-
-# Method 2. Simple stratified randomization - Race, Size  
-st_time <- Sys.time()
-
-## execute - randomization
-df_rand <- df_samp %>%
-  mutate(assignment = map(.x = data, 
-                          .f = ~rnd_2strat(., .id='accpt_id')))
-
-## compute - mean differences  
-df_rand$delta = pmap(list(df_rand$data, 
-                          df_rand$assignment,
-                          df_samp_varlist$fac_adj),
-                     .f = ~cpt_diff(..1, ..2, ..3))
-
-end_time <- Sys.time()
-
-## record time taken
-sto_runinfo$runtimes$simple <- end_time - st_time
-
-## save  
-saveRDS(df_rand, here::here('prj_dbdf', dta.names$f_rnd_res[1]))
-
+  
 # Method 3. Pair-matched Randomization - Mahalanobis Distance  
 
 ## Call function
@@ -152,7 +165,7 @@ saveRDS(df_rand, here::here('prj_dbdf', dta.names$f_rnd_res[1]))
 ## record time taken
 
 # Save files  
-## Runtimes  
-saveRDS(sto_runinfo, here::here('prj_dbdf', dta.names$f_cpt_list[3]))
-## save randomizations/mean differences  
-saveRDS(sto_runinfo, here::here('prj_dbdf', dta.names$f_cpt_list[4]))
+  ## Runtimes  
+  saveRDS(sto_runinfo, here::here('prj_dbdf', dta.names$f_cpt_list[3]))
+  ## save randomizations/mean differences  
+  saveRDS(sto_runinfo, here::here('prj_dbdf', dta.names$f_cpt_list[4]))

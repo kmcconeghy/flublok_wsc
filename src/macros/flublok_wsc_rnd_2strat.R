@@ -1,54 +1,18 @@
 # Method 1. Simple Randomization  
-## Random Assignment - Simple  
-rnd_2strat  <- function(x, strata, .id) {
+## Random Assignment - 2 strata 
+rnd_2strat  <- function(x, strata, .id='accpt_id') {
   
-  strat_1 <- strata[1]
-  strat_2 <- strata[2]
+  strat_1 <- df_samp_varlist$strata[[1]][1, 1] 
+  strat_2 <- df_samp_varlist$strata[[1]][2, 1] 
+  
+  x <- df_samp$data[[1]]
   id_list <- x %>%
-    distinct(fac_id, fac_black, fac_ls) %>%
-    mutate(cat_aa = ntile(fac_black, 5),
-           cat_fs = ntile(fac_ls, 5),
-           strata = interaction(cat_aa, cat_fs)) %>%
-    distinct(fac_id, cat_aa, cat_fs, strata)   
-    select(all_of(.id)) %>%
-    distinct(.) %>%
-    pull(.)
+    mutate(cat_1 = ntile(strat_1, 5),
+           cat_2 = ntile(strat_2, 5),
+           strata = interaction(cat_1, cat_2)) %>%
+    distinct(.id, cat_1, cat_2, strata)   
   
-  rnd_rtrn <- jumble::rnd_allot(id_list)
+  rnd_rtrn <- jumble::rnd_str(id_list, strata, accpt_id)
   
   return(rnd_rtrn)
-}
-
-test  <- function(x) {
-## 2 Stratum  
-df_m2 <- df_trial %>%
-  distinct(fac_id, fac_black, fac_ls) %>%
-  mutate(cat_aa = ntile(fac_black, 5),
-         cat_fs = ntile(fac_ls, 5),
-         strata = interaction(cat_aa, cat_fs)) %>%
-  distinct(fac_id, cat_aa, cat_fs, strata)   
-
-#Matrix of values  
-m2_res <- list()
-
-m2_res$delta <- matrix(NA, nrow = n_rndms, ncol = length(chk_id_vars))  
-m2_res$stdev <- df_trial[, chk_id_vars] %>% 
-  map_dfr(., sd, na.rm=T) %>%
-  t(.)
-
-do_it <- function(x)  {
-  sim_iter <- rnd_str(df_m2, strata, fac_id) %>%
-    inner_join(df_trial[, c('fac_id', chk_id_vars)], ., by=c('fac_id')) %>%
-    select(group, chk_id_vars)
-  
-  delta <- do_rand(sim_iter)
-  return(delta)
-}
-
-m2_res$delta[1:n_rndms, ] <- t(sapply(1L:n_rndms, do_it))
-m2_res$smd <- t(apply(m2_res$delta, 1, function(x) x / t(m2_res$stdev)))
-
-st_end <- Sys.time()
-cat(paste0(n_rndms), 'Randomizations for M2. Stratified randomization, facility %AA and size quintiles \n ')
-st_end - st_run
 }

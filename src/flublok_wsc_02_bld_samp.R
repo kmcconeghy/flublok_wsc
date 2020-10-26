@@ -27,7 +27,7 @@ ltc_samp <- sapply(sample_size,
                          simplify=F) %>%
   bind_rows(.id = 'sample') %>%
   group_by(sample) %>%
-  nest() #nest grouped df
+  nest(.) #nest grouped df
 
 ltc_samp$size <- map(ltc_samp$data, nrow)
 
