@@ -1,12 +1,12 @@
-
 #---------------------------------------------------------#
 # 
 # Project: Randomization Study
-# File to Insheet LTFocus data
+# file to assess method performance
 # Programmer: Kevin McConeghy
 # Start: 09/29/2020
 # 
 #--------------------------------------------------------#
+
 source(list.files(pattern='*cfg*'))
 source(here::here('src', paste0(prj.specs$prj.prefix, '_lst_dtafiles.R')))
 
