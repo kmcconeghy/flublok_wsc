@@ -1,0 +1,126 @@
+---
+title: "Report - Figure 1"
+author: "Kevin W. McConeghy"
+date: "Compiled: `r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    fig_caption: yes
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      collapsed: yes
+bibliography: 'C:\\Github\\hsrrefs.bib'
+link-citations: yes
+params:
+  f_prefix: '07_rpt'
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+library(here)
+library(ggpubr)
+source(here(list.files(path = here(), pattern='*cfg*')))
+source(here('src', paste0(prj.specs$prj.prefix, '_lst_dtafiles.R')))
+
+opts_chunk$set(echo=F) 
+options(scipen=999)
+opts_chunk$set(tidy.opts=list(width.cutoff=80), tidy=TRUE)
+
+seed_day <- as.integer(ymd('2020-11-06'))
+
+set.seed(seed_day)
+```
+
+
+# Dataset  
+
+```{r input}
+df <- readRDS(here('prj_dbdf', dta.names$f_cpt_list[5])) %>%
+  select(sample, size, method, starts_with('smd'))
+
+des_df(df, 'Results', c('sample', 'size', 'method'))
+```
+
+# Prepare table for reporting  
+
+## Compute variance  
+
+```{r summ_var, echo=T}
+# compute variance by method, size
+df_summ_var <- df %>%
+  group_by(method, size) %>%
+  summarize_at(vars(starts_with('smd')), .funs = list(~sqrt(var(.)))) %>%
+  arrange(size)
+```
+
+## Compute percent change  
+
+```{r pcent}
+summ_anysize_prec <- df_summ_var %>%
+  select(-size) %>%
+  group_by(method) %>%
+  summarize_all(mean) %>%
+  rename_with(.fn = str_replace, .cols = starts_with('smd'), pattern='smd_', replacement = 'prec_')
+
+df_summ <- df_summ_var %>%
+  group_by(size) %>%
+  nest() 
+
+df_summ$pcent_chg <- map(df_summ$data, get_pcent_chg)
+
+df_pcent <- df_summ %>%
+  select(size, pcent_chg) %>%
+  ungroup() %>%
+  unnest(cols = pcent_chg) %>%
+  rename(Method = method)
+```
+
+## Figure 1  
+
+```{r fig1sep}
+
+fig_1_a <- ggplot(df_pcent, aes(x = size, y = smd_e_tot, group = Method)) +
+  geom_line(aes(color = Method, linetype=Method)) +
+  scale_color_brewer(palette="Set1") +
+  theme_bw() + 
+  labs(y= '',
+       x= '') 
+fig_1_b <- ggplot(df_pcent, aes(x = size, y = smd_e_adj, group = Method)) +
+  geom_line(aes(color = Method, linetype=Method)) +
+  scale_color_brewer(palette="Set1") +
+  theme_bw() + 
+  labs(y= '',
+       x= '') 
+fig_1_c <- ggplot(df_pcent, aes(x = size, y = smd_e_str, group = Method)) +
+  geom_line(aes(color = Method, linetype=Method)) +
+  scale_color_brewer(palette="Set1") +
+  theme_bw() + 
+  labs(y= '',
+       x= '') 
+fig_1_d <- ggplot(df_pcent, aes(x = size, y = smd_e_unadj, group = Method)) +
+  geom_line(aes(color = Method, linetype=Method)) +
+  scale_color_brewer(palette="Set1") +
+  theme_bw() + 
+  labs(y= '',
+       x= '') 
+```
+
+## Combine plots  
+
+```{r, message=F, warning=F}
+fig_1all <- ggarrange(fig_1_a,
+          fig_1_b,
+          fig_1_c,
+          fig_1_d,
+          ncol=2, nrow=2, labels = c("A", "B", "C", "D"),
+          common.legend = T, legend = "bottom")
+```
+
+```{r }
+ggsave(here('output', 
+            paste0(prj.specs$prj.prefix, '_fig1all_', 
+            timestamp(), '.jpeg')), height=5, width=8, dpi=150)
+```
+
+# References  

@@ -1,0 +1,109 @@
+---
+title: "Report - Table 1"
+author: "Kevin W. McConeghy"
+date: "Compiled: `r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    fig_caption: yes
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      collapsed: yes
+bibliography: 'C:\\Github\\hsrrefs.bib'
+link-citations: yes
+params:
+  f_prefix: '06_rpt'
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+library(here)
+library(kableExtra)
+source(here(list.files(path = here(), pattern='*cfg*')))
+source(here('src', paste0(prj.specs$prj.prefix, '_lst_dtafiles.R')))
+
+opts_chunk$set(echo=F) 
+options(scipen=999)
+opts_chunk$set(tidy.opts=list(width.cutoff=80), tidy=TRUE)
+
+seed_day <- as.integer(ymd('2020-11-04'))
+
+set.seed(seed_day)
+```
+
+
+# Dataset  
+
+```{r input}
+df <- readRDS(here('prj_dbdf', dta.names$f_cpt_list[5])) %>%
+  select(sample, size, method, starts_with('smd'))
+
+des_df(df, 'Results', c('sample', 'size', 'method'))
+```
+
+# Prepare table for reporting  
+
+```{r summ_var, echo=T}
+# compute variance by method, size
+df_summ_var <- df %>%
+  group_by(method, size) %>%
+  summarize_at(vars(starts_with('smd')), .funs = list(~sqrt(var(.)))) %>%
+  arrange(size)
+
+df_summ_var_5lvl <- df_summ_var %>%
+  dplyr::filter(size %in% c(10, 50, 100, 250, 500)) 
+```
+
+```{r anysize}
+summ_anysize_prec <- df_summ_var %>%
+  select(-size) %>%
+  group_by(method) %>%
+  summarize_all(mean) 
+
+summ_anysize_perc <- get_pcent_chg(summ_anysize_prec)
+```
+
+```{r cpt_size}
+pctchg_tab <- function(df, n=10) {
+  df_n_summ_var <- df %>%
+  dplyr::filter(size==n) %>%
+  select(-size)
+
+  summ_n_perc <- get_pcent_chg(df_n_summ_var)
+  
+  return(summ_n_perc)
+}
+```
+
+```{r 10size}
+pctchg_10tab <- pctchg_tab(df_summ_var, 10)
+```
+
+```{r 50size}
+pctchg_50tab <- pctchg_tab(df_summ_var, 50)
+```
+
+```{r 250size}
+pctchg_250tab <- pctchg_tab(df_summ_var, 250)
+```
+
+```{r bldtab}
+df_tab <- bind_rows(pctchg_10tab,
+          pctchg_50tab,
+          pctchg_250tab,
+          summ_anysize_perc,
+          .id = 'Size') %>%
+  mutate(Size = factor(Size, levels = c(1:4), 
+                       labels = c('10', '50', '250', '1-500'))) %>%
+  rename(`All variables` = smd_e_tot,
+         `Adjustment variables` = smd_e_adj,
+         `Strata variable` = smd_e_str,
+         `Unadjusted variables` = smd_e_unadj) 
+```
+
+```{r }
+kable(df_tab) 
+```
+
+# References  

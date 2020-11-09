@@ -1,7 +1,7 @@
 #-- load tidyverse
   cat('loading Scotty canon packages....')
     pkg_toload <- c('tidyverse', 'lubridate', 
-                    'here', 'Scotty')
+                    'here', 'Scotty', 'knitr')
     
     hold_del <- sapply(pkg_toload, 
                        require,
@@ -13,12 +13,12 @@
 prj.dir <- getwd()
 
 #---Log output  
-con <- file(here::here('log', paste0("console_", timestamp(), ".log")))
-sink(con, split=T, append=F)
+#con <- file(here::here('log', paste0("console_", timestamp(), ".log")))
+#sink(con, split=T, append=F)
 
 cat('load project specifics....', '\n')
   cat(paste0('Project working directory:', prj.dir), '\n')
-  source( list.files(pattern='*_specs.R'))
+  source(here(list.files(here(), pattern='*_specs.R')))
   cat('Project Root Name:', prj.specs$prj.prefix, ' ', 
       'Start Date:', prj.specs$prj.dt_start, '\n')
   cat('Programmer:', prj.specs$prj.coder, '\n')
@@ -39,7 +39,7 @@ cat('Done', '\n')
   
 #--Directories
 cat('Checking directories...')
-  source( list.files(pattern='*_dirs.R'))
+  source(here(list.files(here(), pattern='*_dirs.R')))
   share.dbdf.path <- paste0(dirname(here::here()), '/', 'dbdf')
   sas.dbdf.path <- paste0('P:/adap5/dbdf/analdata')
 cat('Done', '\n')

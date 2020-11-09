@@ -19,8 +19,18 @@ source(here::here('src', paste0(prj.specs$prj.prefix, '_lst_dtafiles.R')))
 ltc_dta <- readRDS(here::here('prj_dbdf', dta.names$f_munge_list[1]))
 
 set.seed(as.integer(ymd('2020-10-21')))
-random_iters <- 10000L
-sample_size <- sort(rep(seq(10, 508, 2), 40))
+  
+iters_persize <- 1000
+if (testrun) {
+  iters_persize <- 2
+}
+sample_size <- sort(rep(c(seq(4, 10, 2),
+                          seq(12, 20, 4), 
+                          seq(30, 100, 10),
+                          seq(120, 200, 20),
+                          seq(250, 500, 50)), iters_persize))
+
+l_samples <- length(sample_size)
 
 ltc_samp <- sapply(sample_size, 
                      function(x) sample_n(ltc_dta, x, replace=F), 

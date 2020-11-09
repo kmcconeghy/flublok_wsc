@@ -1,0 +1,55 @@
+---
+title: "Report - Check rnd_strata function"
+author: "Kevin W. McConeghy"
+date: "Compiled: `r Sys.Date()`"
+output: 
+  pdf_document:
+    toc: true
+    toc_depth: 2
+bibliography: 'C:\\Github\\hsrrefs.bib'
+link-citations: yes
+params:
+  code_nm: 
+    value: '08_rpt'
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+library(here)
+source(here(list.files(path = here(), pattern='*cfg*')))
+source(here('src', paste0(prj.specs$prj.prefix, '_lst_dtafiles.R')))
+
+opts_chunk$set(echo=F) 
+options(scipen=999)
+opts_chunk$set(tidy.opts=list(width.cutoff=80), tidy=TRUE)
+
+seed_day <- as.integer(ymd('2020-11-04'))
+
+set.seed(seed_day)
+```
+
+
+# Dataset  
+
+```{r input}
+df <- readRDS(here('prj_dbdf', dta.names$f_munge_list[1])) %>%
+  sample_n(10)
+
+des_df(df, 'Results')
+```
+
+# Prepare table for reporting  
+
+```{r , echo=T}
+df_2 <- rnd_strat(df, matrix('totbeds')) %>%
+  inner_join(., df)
+```
+
+```{r }
+df_2 %>%
+  group_by(group) %>%
+  summarize(mean(totbeds))
+```
+
+
+# References  

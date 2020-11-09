@@ -2,7 +2,8 @@
 # 
 # Project: Randomization Study
 # Perform series of randomizations  
-# Programmer: 
+# Programmer: Augustus 
+# Reviewed: Kevin W. McConeghy
 # Start: 09/29/2020
 # 
 #--------------------------------------------------------#
@@ -11,6 +12,7 @@ source(here::here('src', paste0(prj.specs$prj.prefix, '_lst_dtafiles.R')))
 
 # remotes::install_github('kmcconeghy/jumble')
 library(jumble)  
+library(nbpMatching) # for pairmatching
 
 df_samp <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[1]))
 df_samp_varlist <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[2]))
@@ -28,7 +30,7 @@ df_samp_varlist <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[2]))
 # Simulation Set-up 
 
 ## Parameters  
-testrun <- T  # to trial simulation set to T, set F when ready 
+testrun <- F  # to trial simulation set to T, set F when ready 
 
 if (testrun) {
   df_samp <- df_samp[1:10, ]
@@ -47,7 +49,7 @@ st_seed <- as.integer(ymd('2020-10-24'))
 set.seed(st_seed)
 
 rndm_methods <- c('rnd_simple',
-                  'rnd_2strat',
+                  'rnd_strat',
                   'rnd_paired',
                   'rnd_kmns',
                   'rnd_kmpca',
@@ -101,7 +103,7 @@ st_time <- Sys.time()
   ## execute - randomization
   df_rand$assign <- map2(.x = df_samp$data, 
                          .y = df_samp_varlist$strata,
-                         .f = ~rnd_2strat(.x, .y, .id='accpt_id'))
+                         .f = ~rnd_strat(.x, .y, .id='accpt_id'))
   
   ## compute - mean differences  
   res_iter <- pmap(list(df_samp$data, 
@@ -123,14 +125,31 @@ end_time <- Sys.time()
 sto_runinfo$runtimes$strata <- end_time - st_time
 
 # Method 3. Pair-matched Randomization - Mahalanobis Distance  
-
-## Call function
-
-## execute
-
-## save random datasets as list  
-
-## record time taken
+  st_time <- Sys.time()
+  
+  ## execute - randomization
+  df_rand$assign <- map2(.x = df_samp$data, 
+                         .y = df_samp_varlist$data,
+                         .f = ~rnd_pairmatch(.x, .y, .id='accpt_id'))
+  
+  ## compute - mean differences  
+  res_iter <- pmap(list(df_samp$data, 
+                        df_rand$assign,
+                        df_samp_varlist$fac_adj),
+                   .f = ~cpt_diff(..1, ..2, ..3))
+  
+  ## add results to data.frame  
+  df_rand$res <- map2(df_rand$res, # inner apply 
+                      res_iter,
+                      .f = function(x, y, rw=3) {
+                        x[rw, 2:ncol(x)] <- y
+                        return(x)
+                      })
+  
+  end_time <- Sys.time()
+  
+  ## record time taken
+  sto_runinfo$runtimes$pairmatch <- end_time - st_time
 
 # Method 4. K-means clustering, key variables  
 

@@ -1,26 +1,36 @@
 #--Project Set-up
   source(list.files(pattern='*cfg*'))
 
-  ## - Project Prefix  
-  prj_pfix <- prj.specs$prj.prefix
-  
 #-- Load data hierarchy  
-  source(here::here('src', paste0(prj_pfix, '_lst_dtafiles.R')))
+  source(here::here('src', paste0(prj.specs$prj.prefix, '_lst_dtafiles.R')))
 
-#-- dataset / munge  
-  if (T) source(here::here('src', paste0(prj_pfix, '_01_inp_mkindta.R')))
-  if (T) source(here::here('src', paste0(prj_pfix, '_02_bld_samp.R')))
-  if (T) source(here::here('src', paste0(prj_pfix, '_03_bld_varlist.R')))
-  rm(list=ls()) # clear datasets from memory
-  gc() # clean up memory
+#--input facility file (only needs to run once)
+  if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_01_inp_mkindta.R')))
   
-  #-- Randomizations  
-  if (T) source(here::here('src', paste0(prj_pfix, '_04_cpt_dorandom.R')))
-  if (T) source(here::here('src', paste0(prj_pfix, '_05_cpt_performance.R')))
+#-- Create facility lists, variable lists 
+  testrun <- F #set to true for quick run to test code
+  if (T) {
+    source(here::here('src', paste0(prj.specs$prj.prefix, '_02_bld_samp.R')))
+    source(here::here('src', paste0(prj.specs$prj.prefix, '_03_bld_varlist.R')))
+    rm(list=ls()[str_detect(ls(), 'ltc_')]) # clear datasets from memory
+    gc() # clean up memory
+  }
+
+#-- Randomizations and computation
+  if (T) {
+    source(here::here('src', paste0(prj.specs$prj.prefix, '_04_cpt_dorandom.R')))
+    source(here::here('src', paste0(prj.specs$prj.prefix, '_05_cpt_res.R')))
+    rm(list=ls()[str_detect(ls(), 'df')]) # clear datasets from memory
+    gc() # clean up memory
+  }
+
+#-- Reports  
+  ## render_one, a function from Scotty
+  ## remotes::install_github('kmcconeghy/Scotty')
+  ## render_one('prefix', 'codepath', 'reportpath')
+  if (T) {
+    render_one('06_rpt_tab1', here::here('src'), here::here('output'))
+    render_one('07_rpt_fig1', here::here('src'), here::here('output'))
+  }
   
-#--IF ONLY WANT ONE FILE TO RUN
-  #render_one('B04', wd.CodeFiles, ReportFiles)
-
-cat(paste0('Project Run: ', prj.RunTime %--% Sys.time()))
-
 #End project
