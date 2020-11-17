@@ -10,8 +10,6 @@ output:
     toc_depth: 3
     toc_float:
       collapsed: yes
-bibliography: 'C:\\Github\\hsrrefs.bib'
-link-citations: yes
 params:
   f_prefix: '06_rpt'
 always_allow_html: yes
@@ -32,7 +30,6 @@ seed_day <- as.integer(ymd('2020-11-04'))
 set.seed(seed_day)
 ```
 
-
 # Dataset  
 
 ```{r input}
@@ -45,10 +42,10 @@ des_df(df, 'Results', c('sample', 'size', 'method'))
 # Prepare table for reporting  
 
 ```{r summ_var, echo=T}
-# compute variance by method, size
+# compute stdev by method, size
 df_summ_var <- df %>%
   group_by(method, size) %>%
-  summarize_at(vars(starts_with('smd')), .funs = list(~sqrt(var(.)))) %>%
+  summarize_at(vars(starts_with('smd')), .funs = list(~sqrt(var(., na.rm=T)))) %>%
   arrange(size)
 
 df_summ_var_5lvl <- df_summ_var %>%
@@ -59,7 +56,7 @@ df_summ_var_5lvl <- df_summ_var %>%
 summ_anysize_prec <- df_summ_var %>%
   select(-size) %>%
   group_by(method) %>%
-  summarize_all(mean) 
+  summarize_all(mean, na.rm=T) 
 
 summ_anysize_perc <- get_pcent_chg(summ_anysize_prec)
 ```
@@ -84,18 +81,13 @@ pctchg_10tab <- pctchg_tab(df_summ_var, 10)
 pctchg_50tab <- pctchg_tab(df_summ_var, 50)
 ```
 
-```{r 250size}
-pctchg_250tab <- pctchg_tab(df_summ_var, 250)
-```
-
 ```{r bldtab}
 df_tab <- bind_rows(pctchg_10tab,
           pctchg_50tab,
-          pctchg_250tab,
           summ_anysize_perc,
           .id = 'Size') %>%
-  mutate(Size = factor(Size, levels = c(1:4), 
-                       labels = c('10', '50', '250', '1-500'))) %>%
+  mutate(Size = factor(Size, levels = c(1:3), 
+                       labels = c('10', '50', '1-500'))) %>%
   rename(`All variables` = smd_e_tot,
          `Adjustment variables` = smd_e_adj,
          `Strata variable` = smd_e_str,

@@ -13,6 +13,8 @@ source(here::here('src', paste0(prj.specs$prj.prefix, '_lst_dtafiles.R')))
 # remotes::install_github('kmcconeghy/jumble')
 library(jumble)  
 library(nbpMatching) # for pairmatching
+library(Rfast) # for M distance
+library(progress) # for progress bars
 
 df_samp <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[1]))
 df_samp_varlist <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[2]))
@@ -58,7 +60,8 @@ rndm_methods <- c('rnd_simple',
 cat('Starting Seed: ', st_seed, '\n')
 
 df_rand <- df_samp %>%
-  select(-data)
+  select(-data) %>%
+  ungroup
 
 rndm_tab <- tibble(method = rndm_methods) 
 rndm_tab[df_samp_varlist$fac_adj[[1]]] <- NA_real_
@@ -72,9 +75,13 @@ sto_runinfo$runtimes <- list()
 # -- Run method 1 - Simple randomization
 st_time <- Sys.time()
 
-  ## randomization
+  ## execute - randomization  
+  pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(df_samp$data))
+
   df_rand$assign <- map(.x = df_samp$data, 
-                       .f = ~rnd_simple(., .id='accpt_id')) %>%
+                       .f = ~{
+                         pb$tick()
+                         rnd_simple(., .id='accpt_id')}) %>%
     map(.f = ~rename(., accpt_id = id))
   
   ## compute - mean differences  
@@ -101,9 +108,12 @@ st_time <- Sys.time()
 st_time <- Sys.time()
 
   ## execute - randomization
+  pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(df_samp$data))
   df_rand$assign <- map2(.x = df_samp$data, 
                          .y = df_samp_varlist$strata,
-                         .f = ~rnd_strat(.x, .y, .id='accpt_id'))
+                         .f = ~{
+                           pb$tick()
+                           rnd_strat(.x, .y, .id='accpt_id')})
   
   ## compute - mean differences  
   res_iter <- pmap(list(df_samp$data, 
@@ -127,10 +137,14 @@ sto_runinfo$runtimes$strata <- end_time - st_time
 # Method 3. Pair-matched Randomization - Mahalanobis Distance  
   st_time <- Sys.time()
   
-  ## execute - randomization
+  ## execute - randomization  
+  pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(df_samp$data))
+  
   df_rand$assign <- map2(.x = df_samp$data, 
                          .y = df_samp_varlist$data,
-                         .f = ~rnd_pairmatch(.x, .y, .id='accpt_id'))
+                         .f = ~{
+                           pb$tick()
+                           rnd_pairmatch(.x, .y, .id='accpt_id')})
   
   ## compute - mean differences  
   res_iter <- pmap(list(df_samp$data, 
@@ -172,14 +186,35 @@ sto_runinfo$runtimes$strata <- end_time - st_time
 ## record time taken
 
 # Method 6. Re-randomization  
-
-## Call function
-
-## execute
-
-## save random datasets as list  
-
-## record time taken
+  st_time <- Sys.time()
+  
+  ## execute - randomization  
+  pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(df_samp$data))
+  
+  df_rand$assign <- map2(.x = df_samp$data, 
+                         .y = df_samp_varlist$data,
+                         .f = ~{
+                           pb$tick()
+                           rnd_rerand(.x, .y, .id='accpt_id')
+                           })
+  ## compute - mean differences  
+  res_iter <- pmap(list(df_samp$data, 
+                        df_rand$assign,
+                        df_samp_varlist$fac_adj),
+                   .f = ~cpt_diff(..1, ..2, ..3))
+  
+  ## add results to data.frame  
+  df_rand$res <- map2(df_rand$res,  
+                      res_iter,
+                      .f = function(x, y, rw=6) {
+                        x[rw, 2:ncol(x)] <- y
+                        return(x)
+                      })
+  
+  end_time <- Sys.time()
+  
+  ## record time taken
+  sto_runinfo$runtimes$rerand <- end_time - st_time
 
 # Save files  
 

@@ -10,8 +10,6 @@ output:
     toc_depth: 3
     toc_float:
       collapsed: yes
-bibliography: 'C:\\Github\\hsrrefs.bib'
-link-citations: yes
 params:
   f_prefix: '07_rpt'
 always_allow_html: yes
@@ -50,7 +48,7 @@ des_df(df, 'Results', c('sample', 'size', 'method'))
 # compute variance by method, size
 df_summ_var <- df %>%
   group_by(method, size) %>%
-  summarize_at(vars(starts_with('smd')), .funs = list(~sqrt(var(.)))) %>%
+  summarize_at(vars(starts_with('smd')), .funs = list(~var(., na.rm=T))) %>%
   arrange(size)
 ```
 
@@ -85,25 +83,29 @@ fig_1_a <- ggplot(df_pcent, aes(x = size, y = smd_e_tot, group = Method)) +
   scale_color_brewer(palette="Set1") +
   theme_bw() + 
   labs(y= '',
-       x= '') 
+       x= '',
+       title = 'All covariates') 
 fig_1_b <- ggplot(df_pcent, aes(x = size, y = smd_e_adj, group = Method)) +
   geom_line(aes(color = Method, linetype=Method)) +
   scale_color_brewer(palette="Set1") +
   theme_bw() + 
   labs(y= '',
-       x= '') 
+       x= '',
+       title = 'Balanced covariates') 
 fig_1_c <- ggplot(df_pcent, aes(x = size, y = smd_e_str, group = Method)) +
   geom_line(aes(color = Method, linetype=Method)) +
   scale_color_brewer(palette="Set1") +
   theme_bw() + 
   labs(y= '',
-       x= '') 
+       x= '',
+       title = 'Single Strata Covariate') 
 fig_1_d <- ggplot(df_pcent, aes(x = size, y = smd_e_unadj, group = Method)) +
   geom_line(aes(color = Method, linetype=Method)) +
   scale_color_brewer(palette="Set1") +
   theme_bw() + 
   labs(y= '',
-       x= '') 
+       x= '',
+       title = 'Unbalanced covariates') 
 ```
 
 ## Combine plots  
@@ -113,8 +115,7 @@ fig_1all <- ggarrange(fig_1_a,
           fig_1_b,
           fig_1_c,
           fig_1_d,
-          ncol=2, nrow=2, labels = c("A", "B", "C", "D"),
-          common.legend = T, legend = "bottom")
+          ncol=2, nrow=2, common.legend = T, legend = "bottom")
 ```
 
 ```{r }
