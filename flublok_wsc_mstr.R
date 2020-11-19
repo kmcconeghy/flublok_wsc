@@ -8,21 +8,29 @@
   if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_01_inp_mkindta.R')))
   
 #-- Create facility lists, variable lists 
-  testrun <- F #set to true for quick run to test code
-  if (T) {
+  if (F) {
     source(here::here('src', paste0(prj.specs$prj.prefix, '_02_bld_samp.R')))
     source(here::here('src', paste0(prj.specs$prj.prefix, '_03_bld_varlist.R')))
     rm(list=ls()[str_detect(ls(), 'ltc_')]) # clear datasets from memory
     gc() # clean up memory
   }
 
-#-- Randomizations and computation
-  if (T) {
-    source(here::here('src', paste0(prj.specs$prj.prefix, '_04_cpt_dorandom.R')))
+#-- Randomizations and computation  
+  testrun <- F #set to true for quick run to test code
+    source(here::here('src', paste0(prj.specs$prj.prefix, '_04a_cpt_dosetup.R')))  
+    
+    # set to false once run on full set
+    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04b_cpt_dosimp.R'))) # done 
+    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04c_cpt_dostrata.R'))) # done
+    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04d_cpt_dopair.R')))
+    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04e_cpt_dokmeans.R')))
+    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04f_cpt_dokmpca.R')))
+    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04g_cpt_dorerand.R')))  
+    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04h_cpt_joinres.R')))
+  
     source(here::here('src', paste0(prj.specs$prj.prefix, '_05_cpt_res.R')))
     rm(list=ls()[str_detect(ls(), 'df')]) # clear datasets from memory
     gc() # clean up memory
-  }
 
 #-- Reports  
   ## render_one, a function from Scotty
