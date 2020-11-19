@@ -1,10 +1,10 @@
-st_seed <- as.integer(ymd('2020-11-19'))
+st_seed <- as.integer(ymd('2020-11-20'))
 set.seed(st_seed)
 readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[3]))
 
 # -- Run method 1 - Simple randomization
 
-cat('Begin pair randomization procedure....', '\n')
+cat('Begin Kmeans randomization procedure....', '\n')
 st_time <- Sys.time()
 
   ## execute - randomization  
@@ -14,7 +14,7 @@ st_time <- Sys.time()
                  .y = df_samp_varlist$data,
                  .f = ~{
                    pb$tick()
-                   rnd_pairmatch(.x, .y, .id='accpt_id')})
+                   rnd_kmns(.x, .y, .id='accpt_id')})
 
   cat('Computing differences....', '\n')
   pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", total = length(df_samp$data))
