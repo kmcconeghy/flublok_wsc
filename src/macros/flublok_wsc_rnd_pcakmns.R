@@ -1,39 +1,28 @@
-test <- function(x) {
-### -- Convert to function
-
-
+rnd_pcakmns <- function(x, .id='accpt_id') {
 
 ## Principal components  
 
-### Scale covariates  
-df_prcomp <- df_cov %>%
-  select(-dc_hosp_any) %>%
-  distinct(.) 
-
-df_prcomp_scl <- df_prcomp %>%
-  select(-fac_id) %>%
-  map_dfr(., scale) 
+  ### Scale covariates  
+  df_prcomp <- x %>%
+    select(-dc_hosp_any) %>% # drop variables dont need (city)
 
 
-### Compute PC  
-pca_result <- prcomp(df_prcomp_scl, scale = TRUE)  
+  ### Compute PC  
+  pca_result <- prcomp(df_prcomp_scl, scale = TRUE)  
 
-summary(pca_result)
+  e_values <- pca_result$sdev[pca_result$sdev>1] 
 
-e_values <- pca_result$sdev[pca_result$sdev>1] 
+  # First for principal components
+  df_decomp <- data.frame(pca_result$x) %>%
+    bind_cols(., df_prcomp) %>%
+    select('fac_id', paste0('PC', 1:length(e_values), sep=''))
 
-# First for principal components
-df_decomp <- data.frame(pca_result$x) %>%
-  bind_cols(., df_prcomp) %>%
-  select('fac_id', paste0('PC', 1:length(e_values), sep='')) %>%
-  mutate_at(vars(-'fac_id'), scale)
+  # weight by eigenvectors  
+  df_pca_weighted <- bind_cols(fac_id=df_decomp$fac_id, 
+                               x2=sweep(df_decomp[, 2:21], 2, e_values, "*")) 
 
-
-df_pca_weighted <- bind_cols(fac_id=df_decomp$fac_id, 
-                             x2=sweep(df_decomp[, 2:21], 2, e_values, "*")) 
-
-#Matrix of values  
-df_pca_1 <- df_pca_weighted 
+  #Matrix of values  
+  df_pca_1 <- df_pca_weighted 
 
 repeat {
   df_km_2 <- df_pca_1 %>%

@@ -2,9 +2,9 @@ st_seed <- as.integer(ymd('2020-11-20'))
 set.seed(st_seed)
 readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[3]))
 
-# -- Run method 1 - Simple randomization
+# -- Run method 1 - K-means randomization
 
-cat('Begin pair randomization procedure....', '\n')
+cat('Begin K-means randomization procedure....', '\n')
 st_time <- Sys.time()
 
   ## execute - randomization  
