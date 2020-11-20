@@ -20,7 +20,7 @@ ltc_dta <- readRDS(here::here('prj_dbdf', dta.names$f_munge_list[1]))
 
 set.seed(as.integer(ymd('2020-10-21')))
   
-iters_persize <- 5000 
+iters_persize <- 1000 
 
 sample_size <- sort(rep(c(seq(8, 20, 2),
                           seq(40, 200, 20),

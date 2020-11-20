@@ -33,27 +33,21 @@ set.seed(seed_day)
 # Dataset  
 
 ```{r input}
-df <- readRDS(here('prj_dbdf', dta.names$f_cpt_list[5])) %>%
-  select(sample, size, method, starts_with('smd'))
+df <- readRDS(here('prj_dbdf', dta.names$f_cpt_list[5]))
 
-des_df(df, 'Results', c('sample', 'size', 'method'))
+des_df(df, 'Results', c('size', 'method'))
 ```
 
 # Prepare table for reporting  
 
 ```{r summ_var, echo=T}
 # compute stdev by method, size
-df_summ_var <- df %>%
-  group_by(method, size) %>%
-  summarize_at(vars(starts_with('smd')), .funs = list(~sqrt(var(., na.rm=T)))) %>%
-  arrange(size)
-
-df_summ_var_5lvl <- df_summ_var %>%
+df_summ_var_5lvl <- df %>%
   dplyr::filter(size %in% c(10, 50, 100, 250, 500)) 
 ```
 
 ```{r anysize}
-summ_anysize_prec <- df_summ_var %>%
+summ_anysize_prec <- df %>%
   select(-size) %>%
   group_by(method) %>%
   summarize_all(mean, na.rm=T) 
@@ -74,24 +68,24 @@ pctchg_tab <- function(df, n=10) {
 ```
 
 ```{r 10size}
-pctchg_10tab <- pctchg_tab(df_summ_var, 10)
+pctchg_10tab <- pctchg_tab(df, 10)
 ```
 
-```{r 50size}
-pctchg_50tab <- pctchg_tab(df_summ_var, 50)
+```{r 20size}
+pctchg_20tab <- pctchg_tab(df, 20)
 ```
 
 ```{r bldtab}
 df_tab <- bind_rows(pctchg_10tab,
-          pctchg_50tab,
+          pctchg_20tab,
           summ_anysize_perc,
           .id = 'Size') %>%
   mutate(Size = factor(Size, levels = c(1:3), 
-                       labels = c('10', '50', '1-500'))) %>%
+                       labels = c('10', '20', '1-500'))) %>%
   rename(`All variables` = smd_e_tot,
-         `Adjustment variables` = smd_e_adj,
+         `Adjustment variables` = smd_e_bal,
          `Strata variable` = smd_e_str,
-         `Unadjusted variables` = smd_e_unadj) 
+         `Unadjusted variables` = smd_e_non) 
 ```
 
 ```{r }

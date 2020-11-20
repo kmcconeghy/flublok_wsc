@@ -1,4 +1,9 @@
-# Simulation Set-up 
+
+# load original trial lists
+df_samp <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[1]))
+df_samp_varlist <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[2]))
+
+# labels
 rndm_methods <- c('rnd_simple',
                   'rnd_strat',
                   'rnd_pair',
@@ -6,26 +11,21 @@ rndm_methods <- c('rnd_simple',
                   'rnd_kmpca',
                   'rnd_rerand')
 
+# length of each trial
 sizes <- df_samp %>%
   select(size) %>%
   unlist %>%
   unique(.)
 
-rndm_tab <- tibble(method = rndm_methods) 
-rndm_tab[df_samp_varlist$fac_adj[[1]]] <- NA_real_
 
-df_rand <- tibble(size = sizes, 
-                  res = replicate(length(sizes), rndm_tab, simplify = F))
-
-## Load randomization results  
-df_samp_varlist <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[2]))
-
+# each randomization result
 d_res_simp <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[1])) 
 d_res_strat <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[2])) 
 d_res_pair <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[3])) 
 d_res_kmns <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[4])) 
 d_res_rerand <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[6])) 
 
+#as one list
 d_res <- list(simple = d_res_simp,
               strat = d_res_strat,
               pair = d_res_pair,
@@ -33,94 +33,44 @@ d_res <- list(simple = d_res_simp,
               rerand = d_res_rerand)
 
 # Goal to reorganize file and prepare it for reporting  
-df_res_2 <- df_res %>%
-  select(sample, size, res) 
+df_var_cats <- df_samp %>%
+  select(sample, size) 
 
-## Add varlists 
-df_res_2$totvars <- map(df_res$res, ~names(.[, 2:ncol(.)]))
+df_var_cats$size <- unlist(df_var_cats$size)
 
-df_res_2$adj_vars <- map(df_varlist$data, unlist)
-df_res_2$adj_str <- map(df_varlist$strata, unlist)
-df_res_2$nonadj <- map2(df_res_2$totvars, 
-                        df_res_2$adj_vars,
-                        function(x, y) {
-                          x[!(x %in% y)]
-                        })
+## Add varlists  
 
+#total vars the same for all, so take first list item
+totvars <- df_samp_varlist$fac_adj[[1]]
+
+#balancing vars
+df_var_cats$bal_vars <- map(df_samp_varlist$data, unlist)
+df_var_cats$str_vars <- map(df_samp_varlist$strata, unlist)
+df_var_cats$non_vars <- map(df_samp_varlist$data,
+                            function(x, ...) totvars[!(totvars %in% unlist(x))])
 # Four measures computed
 ## E[SMD] for all variables  
 ## E[SMD] for adj variables 
 ## E[SMD] for strata  
 ## E[SMD] for unadjusted
 
-### All variables 
+### All variables  
+d_res_cats <- map(d_res, ~cpt_vargrp_means(., df_var_cats))
 
-df_res_2$smd_e = pmap(
-  list(
-    #all variables
-    map(df_res_2$res,
-        function(x) {
-          apply(x[, 4:ncol(x)], 1, mean, na.rm=T) %>%
-            tibble(smd_e_tot=.)
-        }),
-    #adjusted variables
-    pmap(list(df_res_2$res,
-              df_res_2$adj_vars),
-         function(a, b) {
-           a_2 <- a[, b]
-           apply(a_2, 1, mean, na.rm=T) %>%
-             tibble(smd_e_adj=.)
-         }),
-    #2str
-    pmap(list(df_res_2$res,
-              df_res_2$adj_str),
-         function(a, b) {
-           a_2 <- a[, b]
-           apply(a_2, 1, mean, na.rm=T) %>%
-             tibble(smd_e_str=.)
-         }),
-    #unadjusted
-    pmap(list(df_res_2$res,
-              df_res_2$nonadj),
-         function(a, b) {
-           a_2 <- a[, b]
-           apply(a_2, 1, mean, na.rm=T) %>%
-             tibble(smd_e_unadj=.)
-         })),
-  bind_cols)
-
-for (i in 1:length(d_res)) {
-  d_res[[i]] <- d_res[[i]] %>%
-    group_by(size) %>%
-    summarize_all(~sd(., na.rm=T)) %>%
-    nest() %>%
-    ungroup
-}
-
-for (i in 1:length(d_res)) {
-  ## add results to data.frame  
-  df_rand$res <- map2(df_rand$res,  
-                      d_res[[i]]$data,
-                      .f = function(x, y, rw=i) {
-                        x[rw, 2:ncol(x)] <- y
-                        return(x)
-                      })
-}
-
-
-
-### unnest
-df_res_3 <- df_res_2 %>%
-  select(sample, size, res, smd_e) %>%
-  unnest(cols = c(size, res, smd_e)) %>%
-  ungroup(.) %>%
+d_res_cats_2 <- map(d_res_cats, 
+                    function(x) {
+                      x %>%
+                        group_by(size) %>%
+                        summarize_at(vars(-sample), ~sd(., na.rm=T))
+                    }) %>%
+  bind_rows(.id = 'method') %>%
   mutate(method = factor(method, 
-                         levels = c('rnd_simple',
-                                    'rnd_strat',
-                                    'rnd_paired',
-                                    'rnd_kmns',
-                                    'rnd_kmpca',
-                                    'rnd_rerand'),
+                         levels = c('simple',
+                                    'strat',
+                                    'pair',
+                                    'kmns',
+                                    'kmpca',
+                                    'rerand'),
                          labels = c('Simple',
                                     'Categorical strata',
                                     'Pair-matched',
@@ -128,4 +78,4 @@ df_res_3 <- df_res_2 %>%
                                     'PCA K-means stratified',
                                     'Re-randomization')))
 
-saveRDS(df_res_3, here::here('prj_dbdf', dta.names$f_cpt_list[5]))
+saveRDS(d_res_cats_2, here::here('prj_dbdf', dta.names$f_cpt_list[5]))
