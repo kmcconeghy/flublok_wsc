@@ -1,4 +1,8 @@
 choose_pa <- function(df_rerand, fac_list, cov_nms, Pa=0.001) {
+  
+  #reset acceptance cutoff to unacceptable
+  mdis_iter <- NULL
+  
   mdis_chk <- replicate(100, {
     chk_rand <- rnd_allot(fac_list) %>%
       inner_join(df_rerand, ., by=c('accpt_id' = 'id')) 
@@ -10,12 +14,11 @@ choose_pa <- function(df_rerand, fac_list, cov_nms, Pa=0.001) {
     c_df_adj <- ((nrow(chk_rand[chk_rand$group=='a', ]) * nrow(chk_rand[chk_rand$group=='b', ])) / (nrow(chk_rand)))
     
     invisible(try({
-      mdis_iter <- Rfast::mahala(c_mns_a[c_tokeep], c_mns_b[c_tokeep], sigma= c_cov[c_tokeep, c_tokeep]) * c_df_adj
-    }, silent=T))
-    
-    mdis_iter})
+      mahalanobis(c_mns_a[c_tokeep], c_mns_b[c_tokeep], cov= c_cov[c_tokeep, c_tokeep]) * c_df_adj
+    }, silent=T)) 
+    })
   
-  r_val <- quantile(mdis_chk, Pa)
+  r_val <- mdis_chk %>% as.numeric() %>% na.omit() %>% quantile(., 0.07, na.rm=T)
   
   return(r_val)
 }
@@ -37,7 +40,6 @@ rnd_rerand <- function(x, covs, .id='accpt_id', Pa=0.001) {
   
   ## Find Acceptable Cut-Off Value  
   cutoff <- choose_pa(df_rerand, fac_list, cov_nms, Pa=Pa)
-  
   k <- length(cov_nms) #number of covariates, degrees of freedom
   
   iter <- min(posscomb, 2000) # upper limit of randomizations to perform  
@@ -60,7 +62,7 @@ rnd_rerand <- function(x, covs, .id='accpt_id', Pa=0.001) {
     c_df_adj <- ((nrow(chk_rand[chk_rand$group=='a', ]) * nrow(chk_rand[chk_rand$group=='b', ])) / (nrow(chk_rand)))
     
     invisible(try({
-      mdis_iter <- Rfast::mahala(c_mns_a[c_tokeep], c_mns_b[c_tokeep], sigma= c_cov[c_tokeep, c_tokeep]) * c_df_adj
+      mdis_iter <- mahalanobis(c_mns_a[c_tokeep], c_mns_b[c_tokeep], cov= c_cov[c_tokeep, c_tokeep]) * c_df_adj
     }, silent=T))
     
     if (!is.null(mdis_iter)) if (mdis_iter<cutoff) break

@@ -30,6 +30,7 @@ st_time <- Sys.time()
     bind_rows()
   
   res_iter$size <- unlist(df_samp$size)
+  res_iter$sample <- unlist(df_samp$sample)
   
   saveRDS(res_iter, here::here('prj_dbdf', dta.names$f_rand_res[1]))
   

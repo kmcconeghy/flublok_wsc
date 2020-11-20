@@ -14,7 +14,7 @@ rnd_kmns  <- function(x, covs, .id='accpt_id') {
   repeat {
     df_km_2 <- kmeans(x=df_km_1[, -1], 
                       centers = k_clust, 
-                      nstart = 10000, 
+                      nstart = 100, 
                       iter.max = 100)
     
     id_list <- bind_cols(accpt_id  = df_km_1[.id], 

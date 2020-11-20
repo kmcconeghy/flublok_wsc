@@ -4,7 +4,7 @@ readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[3]))
 
 # -- Run method 1 - Simple randomization
 
-cat('Begin strata randomization procedure....', '\n')
+cat('Begin rerand randomization procedure....', '\n')
 st_time <- Sys.time()
 
   ## execute - randomization  
@@ -29,6 +29,7 @@ st_time <- Sys.time()
     bind_rows()
   
   res_iter$size <- unlist(df_samp$size)
+  res_iter$sample <- unlist(df_samp$sample)
   
   saveRDS(res_iter, here::here('prj_dbdf', dta.names$f_rand_res[6])) 
   

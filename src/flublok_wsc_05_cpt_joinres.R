@@ -1,7 +1,7 @@
 # Simulation Set-up 
 rndm_methods <- c('rnd_simple',
                   'rnd_strat',
-                  'rnd_paired',
+                  'rnd_pair',
                   'rnd_kmns',
                   'rnd_kmpca',
                   'rnd_rerand')
@@ -18,42 +18,27 @@ df_rand <- tibble(size = sizes,
                   res = replicate(length(sizes), rndm_tab, simplify = F))
 
 ## Load randomization results  
+df_samp_varlist <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[2]))
 
 d_res_simp <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[1])) 
 d_res_strat <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[2])) 
+d_res_pair <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[3])) 
+d_res_kmns <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[4])) 
+d_res_rerand <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[6])) 
 
 d_res <- list(simple = d_res_simp,
-              strat = d_res_strat)
-
-for (i in 1:length(d_res)) {
-  d_res[[i]] <- d_res[[i]] %>%
-    group_by(size) %>%
-    summarize_all(~sd(., na.rm=T)) %>%
-    group_by(size) %>%
-    nest()
-}
-
-for (i in 1:length(d_res)) {
-  ## add results to data.frame  
-  df_rand$res <- map2(df_rand$res,  
-                      d_res[[i]]$data,
-                      .f = function(x, y, rw=i) {
-                        x[rw, 2:ncol(x)] <- y
-                        return(x)
-                      })
-}
+              strat = d_res_strat,
+              pair = d_res_pair,
+              kmns = d_res_kmns,
+              rerand = d_res_rerand)
 
 # Goal to reorganize file and prepare it for reporting  
-
-df_varlist <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[2]))
-
-df_res <- readRDS(here::here('prj_dbdf', dta.names$f_cpt_list[4]))
-
 df_res_2 <- df_res %>%
   select(sample, size, res) 
 
 ## Add varlists 
 df_res_2$totvars <- map(df_res$res, ~names(.[, 2:ncol(.)]))
+
 df_res_2$adj_vars <- map(df_varlist$data, unlist)
 df_res_2$adj_str <- map(df_varlist$strata, unlist)
 df_res_2$nonadj <- map2(df_res_2$totvars, 
@@ -103,6 +88,26 @@ df_res_2$smd_e = pmap(
              tibble(smd_e_unadj=.)
          })),
   bind_cols)
+
+for (i in 1:length(d_res)) {
+  d_res[[i]] <- d_res[[i]] %>%
+    group_by(size) %>%
+    summarize_all(~sd(., na.rm=T)) %>%
+    nest() %>%
+    ungroup
+}
+
+for (i in 1:length(d_res)) {
+  ## add results to data.frame  
+  df_rand$res <- map2(df_rand$res,  
+                      d_res[[i]]$data,
+                      .f = function(x, y, rw=i) {
+                        x[rw, 2:ncol(x)] <- y
+                        return(x)
+                      })
+}
+
+
 
 ### unnest
 df_res_3 <- df_res_2 %>%

@@ -20,12 +20,12 @@
     source(here::here('src', paste0(prj.specs$prj.prefix, '_04a_cpt_dosetup.R')))  
     
     # set to false once run on full set
-    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04b_cpt_dosimp.R'))) # done 
-    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04c_cpt_dostrata.R'))) # done
-    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04d_cpt_dopair.R')))
+    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04b_cpt_dosimp.R'))) # done 
+    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04c_cpt_dostrata.R'))) # done
+    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04d_cpt_dopair.R')))
     if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04e_cpt_dokmns.R')))
     if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04f_cpt_dokmpca.R')))
-    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04g_cpt_dorerand.R')))  
+    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04g_cpt_dorerand.R')))  
     if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04h_cpt_joinres.R')))
   
     source(here::here('src', paste0(prj.specs$prj.prefix, '_05_cpt_res.R')))
