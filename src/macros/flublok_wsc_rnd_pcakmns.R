@@ -44,6 +44,9 @@ rnd_pcakmns <- function(x, .id='accpt_id') {
   
   rnd_rtrn <- jumble::rnd_str(id_list, strata, id=.id)
 
+  
+  return(rnd_rtrn)
+  
 }
 
 # repeat {
