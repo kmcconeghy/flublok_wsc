@@ -9,8 +9,8 @@ rnd_pcakmns <- function(x, .id='accpt_id') {
     select(-c(city, state, zip5, county)) # drop variables don't need
 
   ### Compute PC  
-  pca_result <- prcomp(df_prcomp[,-which(names(df_prcomp) %in% "accpt_id")], scale = F)  
-
+  pca_result <- prcomp(df_prcomp %>% select(-accpt_id), scale = F)  
+  
   e_values <- pca_result$sdev[pca_result$sdev>1] #Filter by linear independence
 
   # First for principal components
