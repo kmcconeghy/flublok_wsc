@@ -27,7 +27,7 @@ rnd_rerand <- function(x, covs, .id='accpt_id', Pa=0.001) {
   posscomb <- choose(nrow(x), nrow(x)/2)
   if (posscomb<1000) Pa <- posscomb / 1000 
   
-  cov_nms <- unlist(covs)
+  cov_nms <- unlist(covs) %>% unname(.)
   
   # create a covariate matrix
   df_rerand <- x %>%

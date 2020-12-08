@@ -104,6 +104,8 @@ fig_1all <- ggarrange(fig_1_a,
           fig_1_c,
           fig_1_d,
           ncol=2, nrow=2, common.legend = T, legend = "bottom")
+
+fig_1all
 ```
 
 ```{r }
