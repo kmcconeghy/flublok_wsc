@@ -21,7 +21,7 @@ fac_noadj <- c('city', 'zip5', 'state', 'county', 'PctPvtDays',
 
 fac_adj <- var_all[!var_all %in% c(fac_id, fac_noadj)]
 
-set.seed(as.integer(ymd('2020-10-21')))
+set.seed(as.integer(ymd('2020-12-08')))
 
 fac_varsamp <- replicate(l_samples, 
                          data.frame(var_adj = sample(fac_adj, size=5, replace=F)), 
@@ -32,9 +32,8 @@ fac_varsamp <- replicate(l_samples,
   mutate(fac_id = 'accpt_id')
 
 fac_varsamp$fac_adj <- list(fac_adj)
-fac_varsamp$strata <- replicate(l_samples, 
-                                data.frame(var_adj = sample(fac_adj, size=1, replace=F)), 
-                                simplify=F) 
+fac_varsamp$strata <- bind_rows(lapply(fac_varsamp$data, lapply, 
+                             function(x) (sample(x, size=1)))) 
  
 
 saveRDS(fac_varsamp, here::here('prj_dbdf', dta.names$f_cpt_list[2]))
