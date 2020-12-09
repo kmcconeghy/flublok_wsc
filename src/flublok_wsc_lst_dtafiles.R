@@ -14,5 +14,6 @@ dta.names <- list(
                  'flublok_wsc_varlist.Rds',
                  'flublok_wsc_runtimes.Rds',
                  'flublok_wsc_rnd_res.Rds',
+                 'flublok_wsc_power.Rds',
                  'flublok_wsc_result.Rds')
 )

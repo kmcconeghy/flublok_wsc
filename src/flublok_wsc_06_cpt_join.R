@@ -78,4 +78,4 @@ d_res_cats_2 <- map(d_res_cats,
                                     'PCA K-means stratified',
                                     'Re-randomization')))
 
-saveRDS(d_res_cats_2, here::here('prj_dbdf', dta.names$f_cpt_list[5]))
+saveRDS(d_res_cats_2, here::here('prj_dbdf', dta.names$f_cpt_list[6]))
