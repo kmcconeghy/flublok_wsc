@@ -45,6 +45,10 @@ cpt_power <- function(assign, sample, data, varlist) {
   fit <- lm(y ~ a + x, data=simmat)
   pval3 <- summary(fit)$coefficients[2,4]
   
-  res <- list(sample = sample, p_strata = pval1, p_bala = pval2, p_unbal = pval3)
+  res <- list(sample = sample, 
+              size = data_2$size[[1]], 
+              p_strata = pval1, 
+              p_bala = pval2, 
+              p_unbal = pval3)
   return(res)
 }

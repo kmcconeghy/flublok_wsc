@@ -21,16 +21,16 @@
     
     # set to false once run on full set
 
-    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04b_cpt_dosimp.R'))) # done 
-    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04c_cpt_dostrata.R'))) # done
-    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04d_cpt_dopair.R')))
-    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04e_cpt_dokmns.R')))    
-    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04f_cpt_dopcakmns.R')))
-    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04g_cpt_dorerand.R')))  
-    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04h_cpt_dogmm.R')))  
-    if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04i_cpt_doapclust.R')))  
+    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04b_cpt_dosimp.R'))) # done 
+    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04c_cpt_dostrata.R'))) # done
+    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04d_cpt_dopair.R')))
+    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04e_cpt_dokmns.R')))    
+    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04f_cpt_dopcakmns.R')))
+    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04g_cpt_dorerand.R')))  
+    #if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04h_cpt_dogmm.R')))  
+    #if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04i_cpt_doapclust.R')))  
     if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_05_cpt_power.R')))
-    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_06_bld_join.R')))
+    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_06_cpt_summvars.R')))
 
     rm(list=ls()[str_detect(ls(), 'df')]) # clear datasets from memory
     gc() # clean up memory

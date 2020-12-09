@@ -23,13 +23,15 @@ d_res_simp <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[1]))
 d_res_strat <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[2])) 
 d_res_pair <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[3])) 
 d_res_kmns <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[4])) 
-d_res_rerand <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[6])) 
+d_res_pcakmns <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[5])) 
+d_res_rerand <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[6]))
 
 #as one list
 d_res <- list(simple = d_res_simp,
-              strat = d_res_strat,
-              pair = d_res_pair,
-              kmns = d_res_kmns,
+              strat  = d_res_strat,
+              pair   = d_res_pair,
+              kmns   = d_res_kmns,
+              pcakmns = d_res_pcakmns,
               rerand = d_res_rerand)
 
 # Goal to reorganize file and prepare it for reporting  

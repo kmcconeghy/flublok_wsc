@@ -17,14 +17,14 @@ sizes <- df_samp %>%
   unlist %>%
   unique(.)
 
+
 # each randomization result
 d_res_simp <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[1])) 
 d_res_strat <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[2])) 
 d_res_pair <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[3])) 
 d_res_kmns <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[4])) 
 d_res_pcakmns <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[5])) 
-d_res_rerand <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[6])) %>%
-  na.omit(.)
+d_res_rerand <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[6]))
 
 #as one list
 d_res <- list(simple = d_res_simp,
@@ -34,37 +34,37 @@ d_res <- list(simple = d_res_simp,
               pcakmns = d_res_pcakmns,
               rerand = d_res_rerand)
 
-st_seed <- as.integer(ymd('2020-12-09'))
-set.seed(st_seed)
+# Goal to reorganize file and prepare it for reporting  
+df_var_cats <- df_samp %>%
+  select(sample, size) 
 
-run_cpt_power <- function(x) {
-  pb <- progress_bar$new(format = "[:bar] :current/:total (:percent)", 
-                         total = length(x$assign))
-  
-  ## compute - mean differences  
-  res_iter = pmap(list(x$assign,
-                       x$sample),
-                  .f = ~{
-                    pb$tick()
-                    cpt_power(..1, ..2, df_samp, df_samp_varlist)}
-  ) %>%
-  bind_rows()
+df_var_cats$size <- unlist(df_var_cats$size)
 
-  return(res_iter)
-}
+## Add varlists  
 
+#total vars the same for all, so take first list item
+totvars <- df_samp_varlist$fac_adj[[1]]
 
-# Goal to simulate an outcome  
-cat('Estimating power...', '\n')
-d_res_2 <- map(d_res, run_cpt_power)
-cat('Done')
+#balancing vars
+df_var_cats$bal_vars <- map(df_samp_varlist$data, unlist)
+df_var_cats$str_vars <- df_samp_varlist$strata
+df_var_cats$non_vars <- map(df_samp_varlist$data,
+                            function(x, ...) totvars[!(totvars %in% unlist(x))])
+# Four measures computed
+## E[SMD] for all variables  
+## E[SMD] for adj variables 
+## E[SMD] for strata  
+## E[SMD] for unadjusted
 
-d_res_3 <- map(d_res_2, 
-      function(x) {
-        x %>%
-          group_by(size) %>%
-          summarize_at(vars(-sample), ~sd(., na.rm=T))
-      })
+### All variables  
+d_res_cats <- map(d_res, ~cpt_vargrp_means(., df_var_cats))
+
+d_res_cats_2 <- map(d_res_cats, 
+                    function(x) {
+                      x %>%
+                        group_by(size) %>%
+                        summarize_at(vars(-sample), ~sd(., na.rm=T))
+                    }) %>%
   bind_rows(.id = 'method') %>%
   mutate(method = factor(method, 
                          levels = c('simple',
@@ -79,5 +79,5 @@ d_res_3 <- map(d_res_2,
                                     'K-means stratified',
                                     'PCA K-means stratified',
                                     'Re-randomization')))
-    
-saveRDS(d_res_2, here::here('prj_dbdf', dta.names$f_cpt_list[5]))
+
+saveRDS(d_res_cats_2, here::here('prj_dbdf', dta.names$f_cpt_list[6]))
