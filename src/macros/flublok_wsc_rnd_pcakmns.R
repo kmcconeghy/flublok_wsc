@@ -1,9 +1,8 @@
-#x <- as.data.frame(df_samp$data[1])
-
 rnd_pcakmns <- function(x, .id='accpt_id') {
 
-## Principal components  
-
+  j <- min(ceiling(nrow(x)*0.2), 30)
+  
+  ## Principal components  
   ### Scale covariates  
   df_prcomp <- x %>%
     select(-c(city, state, zip5, county)) # drop variables don't need
@@ -27,40 +26,22 @@ rnd_pcakmns <- function(x, .id='accpt_id') {
   
   k_clust <- 2
   
-  # repeat {
+   repeat {
     df_pca_2 <- kmeans(x=df_pca_1[, -1], 
                       centers = k_clust, 
-                      nstart = 5, 
+                      nstart = 100, 
                       iter.max = 100)
     
     id_list <- bind_cols(accpt_id  = df_pca_1[.id], 
                          strata = df_pca_2$cluster)
     
-  #   if (min(table(id_list$strata)) <= j) {
-  #     break
-  #   }
-  #   k_clust <- k_clust + 1L
-  # }
+    if (min(table(id_list$strata)) <= j) {
+      break
+    }
+    k_clust <- k_clust + 1L
+}
   
   rnd_rtrn <- jumble::rnd_str(id_list, strata, id=.id)
-
-  
   return(rnd_rtrn)
   
 }
-
-# repeat {
-  # df_km_2 <- df_pca_1 %>%
-  #   select(-fac_id) %>%
-  #   as.matrix(.) %>%
-  #   kmeans(x=., centers = k_clust, nstart = k_starts, iter.max=k_iters)
-  # 
-  # df_m5 <- bind_cols(fac_id  = df_pca_1$fac_id,
-  #                    strata = df_km_2$cluster) %>%
-  #   distinct(.)
-  
-#   if (min(table(df_m5$strata)) <= 2) {
-#     break
-#   }
-#   k_clust <- k_clust + 1L
-# }

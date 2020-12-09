@@ -24,7 +24,7 @@
     if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04c_cpt_dostrata.R'))) # done
     if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04d_cpt_dopair.R')))
     if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04e_cpt_dokmns.R')))
-    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04f_cpt_dokmpca.R')))
+    if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04f_cpt_dopcakmns.R')))
     if (T) source(here::here('src', paste0(prj.specs$prj.prefix, '_04g_cpt_dorerand.R')))  
     if (F) source(here::here('src', paste0(prj.specs$prj.prefix, '_04h_cpt_joinres.R')))
   
