@@ -1,68 +1,47 @@
 rnd_pcakmns <- function(x, .id='accpt_id') {
 
-## Principal components  
-
+  j <- min(ceiling(nrow(x)*0.2), 30)
+  
+  ## Principal components  
   ### Scale covariates  
   df_prcomp <- x %>%
-    select(-dc_hosp_any) %>% # drop variables dont need (city)
-
+    select(-c(city, state, zip5, county)) # drop variables don't need
 
   ### Compute PC  
-  pca_result <- prcomp(df_prcomp_scl, scale = TRUE)  
-
-  e_values <- pca_result$sdev[pca_result$sdev>1] 
+  pca_result <- prcomp(df_prcomp %>% select(-accpt_id), scale = F)  
+  
+  e_values <- pca_result$sdev[pca_result$sdev>1] #Filter by linear independence
 
   # First for principal components
   df_decomp <- data.frame(pca_result$x) %>%
     bind_cols(., df_prcomp) %>%
-    select('fac_id', paste0('PC', 1:length(e_values), sep=''))
+    select('accpt_id', paste0('PC', 1:length(e_values), sep=''))
 
   # weight by eigenvectors  
   df_pca_weighted <- bind_cols(fac_id=df_decomp$fac_id, 
-                               x2=sweep(df_decomp[, 2:21], 2, e_values, "*")) 
+                               x2=sweep(df_decomp[, 2:ncol(df_decomp)], 2, e_values, "*")) 
 
   #Matrix of values  
-  df_pca_1 <- df_pca_weighted 
-
-repeat {
-  df_km_2 <- df_pca_1 %>%
-    select(-fac_id) %>%
-    as.matrix(.) %>%
-    kmeans(x=., centers = k_clust, nstart = k_starts, iter.max=k_iters)
+  df_pca_1 <- bind_cols(accpt_id = df_decomp[,"accpt_id"], df_pca_weighted) 
   
-  df_m5 <- bind_cols(fac_id  = df_pca_1$fac_id,
-                     strata = df_km_2$cluster) %>%
-    distinct(.)
+  k_clust <- 2
   
-  if (min(table(df_m5$strata)) <= 2) {
-    break
-  }
-  k_clust <- k_clust + 1L
+   repeat {
+    df_pca_2 <- kmeans(x=df_pca_1[, -1], 
+                      centers = k_clust, 
+                      nstart = 100, 
+                      iter.max = 100)
+    
+    id_list <- bind_cols(accpt_id  = df_pca_1[.id], 
+                         strata = df_pca_2$cluster)
+    
+    if (min(table(id_list$strata)) <= j) {
+      break
+    }
+    k_clust <- k_clust + 1L
 }
-
-#Matrix of values  
-m5_res <- list()
-
-m5_res$delta <- matrix(NA, nrow = n_rndms, ncol = length(chk_id_vars))  
-m5_res$stdev <- df_trial[, chk_id_vars] %>% 
-  map_dfr(., sd, na.rm=T) %>%
-  t(.)
-
-do_it <- function(x)  {
   
-  sim_iter <- rnd_str(df_m5, strata, fac_id) %>%
-    inner_join(df_trial[, c('fac_id', chk_id_vars)], ., by=c('fac_id')) %>%
-    select(group, chk_id_vars)
+  rnd_rtrn <- jumble::rnd_str(id_list, strata, id=.id)
+  return(rnd_rtrn)
   
-  delta <- do_rand(sim_iter)
-  return(delta)
-}
-
-m5_res$delta[1:n_rndms, ] <- t(sapply(1:n_rndms, do_it))
-m5_res$smd <-t(apply(m5_res$delta, 1, function(x) x / t(m5_res$stdev)))
-
-st_end <- Sys.time()
-
-cat(paste0(n_rndms), 'Method 5. K-means on PCA \n')
-st_end - st_run
 }
