@@ -2,7 +2,7 @@
 ## Random Assignment - 1 strata 
 rnd_strat  <- function(x, strata, .id='accpt_id') {
   
-  strat_1 <- strata[1] 
+  strat_1 <- strata[[1, 1]] 
   
   # to prevent too many strata in small sample size, x,
   # y = floor(x / 5), divide sample by 5 and round down

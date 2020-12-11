@@ -18,21 +18,21 @@ sizes <- df_samp %>%
   unique(.)
 
 # each randomization result
-d_res_simp <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[1])) 
-d_res_strat <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[2])) 
-d_res_pair <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[3])) 
-d_res_kmns <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[4])) 
+d_res_simp    <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[1])) 
+d_res_strat   <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[2])) 
+d_res_pair    <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[3])) 
+d_res_kmns    <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[4])) 
 d_res_pcakmns <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[5])) 
-d_res_rerand <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[6])) %>%
+d_res_rerand  <- readRDS(here::here('prj_dbdf', dta.names$f_rand_res[6])) %>%
   na.omit(.)
 
 #as one list
-d_res <- list(simple = d_res_simp,
-              strat  = d_res_strat,
-              pair   = d_res_pair,
-              kmns   = d_res_kmns,
+d_res <- list(simple  = d_res_simp,
+              strat   = d_res_strat,
+              pair    = d_res_pair,
+              kmns    = d_res_kmns,
               pcakmns = d_res_pcakmns,
-              rerand = d_res_rerand)
+              rerand  = d_res_rerand)
 
 st_seed <- as.integer(ymd('2020-12-09'))
 set.seed(st_seed)
@@ -63,15 +63,15 @@ d_res_3 <- map(d_res_2,
       function(x) {
         x %>%
           group_by(size) %>%
-          summarize_at(vars(-sample), ~sd(., na.rm=T))
-      })
+          summarize_at(vars(-sample), ~sum(.<0.05, na.rm=T)/n())
+      }) %>%
   bind_rows(.id = 'method') %>%
   mutate(method = factor(method, 
                          levels = c('simple',
                                     'strat',
                                     'pair',
                                     'kmns',
-                                    'kmpca',
+                                    'pcakmns',
                                     'rerand'),
                          labels = c('Simple',
                                     'Categorical strata',
@@ -80,4 +80,4 @@ d_res_3 <- map(d_res_2,
                                     'PCA K-means stratified',
                                     'Re-randomization')))
     
-saveRDS(d_res_2, here::here('prj_dbdf', dta.names$f_cpt_list[5]))
+saveRDS(d_res_3, here::here('prj_dbdf', dta.names$f_cpt_list[5]))

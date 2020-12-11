@@ -6,7 +6,7 @@ cpt_power <- function(assign, sample, data, varlist) {
   vlist_2 <- varlist[varlist$sample==sample, ]
   df_1 <- inner_join(assign, data_2$data[[1]], 'accpt_id')
   
-  strata <- vlist_2$strata[[1]]
+  strata <- unlist(vlist_2$strata)[[1]]
   balance <- unlist(vlist_2$data[[1]])
   
   #assignment
@@ -17,7 +17,7 @@ cpt_power <- function(assign, sample, data, varlist) {
   
   balvars <- balance[!c(balance %in% strata)]
   unbalvars <- df_1 %>%
-    select(-accpt_id, -group, -city, -zip5, -state, -county) %>%
+    select(-accpt_id, -group, -city, -zip5, -state, -county, -any_of(c('strata', 'class'))) %>%
     names(.)
   unbalvars <- unbalvars[!c(unbalvars %in% balvars)]
   
@@ -30,19 +30,26 @@ cpt_power <- function(assign, sample, data, varlist) {
   y2 <- as_vector(a*0.2 + x2*0.2 + e)
   y3 <- as_vector(a*0.2 + x3*0.2 + e)
   
+  str_form <- 'y ~ a'
+  
+  if (any(c('strata', 'class') %in% names(assign))) str_form <- paste0(str_form, ' + factor(strata)')
+  
   #strata var
-  simmat <- tibble(y=y1, a=a, x=x1)
-  fit <- lm(y ~ a + x, data=simmat)
+  simmat <- tibble(a=a) %>%
+    bind_cols(., x2=x2, x3=x3) 
+  
+  if ('strata' %in% names(assign)) simmat <- bind_cols(simmat, strata = df_1$strata)
+  if ('class' %in% names(assign)) simmat <- bind_cols(simmat, strata = df_1$class)
+  
+  fit <- lm(as.formula(str_form), data=bind_cols(y = y1, simmat))
   pval1 <- summary(fit)$coefficients[2,4]  
   
   #random balance var
-  simmat <- tibble(y=y2, a=a, x=x2)
-  fit <- lm(y ~ a + x, data=simmat)
+  fit <- lm(as.formula(str_form), data=bind_cols(y = y2, simmat))
   pval2 <- summary(fit)$coefficients[2,4] 
   
   #random unbalance var  
-  simmat <- tibble(y=y3, a=a, x=x3)
-  fit <- lm(y ~ a + x, data=simmat)
+  fit <- lm(as.formula(str_form), data=bind_cols(y = y3, simmat))
   pval3 <- summary(fit)$coefficients[2,4]
   
   res <- list(sample = sample, 
